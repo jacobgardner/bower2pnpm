@@ -5,8 +5,8 @@ const { spawnSync } = require('child_process')
 const { globSync } = require('glob');
 
 
-const packageJson = JSON.parse(fs.readFileSync('package.json').toString());
 
+const packageJson = JSON.parse(fs.readFileSync('package.json').toString());
 spawnSync('bower', ['install']);
 
 const { stdout } = spawnSync('bower', ['list', '-j'], { maxBuffer: 1024 * 1024 * 1024 });
@@ -43,12 +43,13 @@ spawnSync('pnpm', ['install']);
 fs.rmSync('bower_components', { recursive: true, force: true });
 fs.rmSync('bower.json', { recursive: true, force: true });
 
-for (const filePath of globSync('**/*.{jade,js}')) {
+for (const filePath of globSync('**/*.{jade,js}', {ignore: ['node_modules/**', 'bower_components/**']})) {
   const contents = fs.readFileSync(filePath).toString();
 
-  const replacement = contents.replace(/bower_components/g, 'node_modules/@bower_components');
+  const replacement = contents.replace(/([^@])bower_components/g, '$1node_modules/@bower_components');
 
   if (contents !== replacement) {
+    console.log(filePath);
     fs.writeFileSync(filePath, replacement);
   }
 }
